@@ -1,0 +1,10 @@
+## Interface: 110100
+## Title: Nagara RPG
+## Notes: Nagara RPG system helper addon
+## Author: Ahani
+## Version: 0.1.0
+## SavedVariables: NagaraDB
+
+Nagara.lua
+Core.lua
+UI.lua
