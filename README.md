@@ -2,6 +2,11 @@
 
 A World of Warcraft addon that provides a tabletop-style RPG system layer for a group of like-minded roleplayers: character sheets, dice rolls, rules reference, abilities, spells, and more.
 
+Part of the [Nagara](https://github.com/skiotha) project family alongside:
+
+- **[character-builder](https://github.com/skiotha/character-builder)** — Web application for creating and managing characters
+- **[malizia](https://github.com/skiotha/malizia)** — Discord bot for dice rolling and lookups
+
 - **Not** distributed via CurseForge / WoWInterface. Released as [GitHub Release](https://github.com/skiotha/nagara-addon/releases) zips.
 - Two modes in one addon: **Player** and **DM** (toggled via `NagaraDB.dmMode`).
 - **Zero external dependencies** — no Ace3, LibStub, or any third-party library.
@@ -55,7 +60,7 @@ docs/                           -- design docs (not shipped)
 ├── roadmap.md
 └── decisions/                  -- ADRs
 temp/                           -- scratch / sample data (not shipped)
-test/                           -- busted tests (not shipped)
+test/                           -- unit tests, DIY runner (not shipped)
 scripts/                        -- build & release tooling (not shipped)
 ```
 
@@ -103,8 +108,8 @@ New-Item -ItemType Junction `
 
 ### Testing
 
-- Pure logic (`Util/`, `Core/`, `DB/`, `Comm/Protocol.lua`) is tested outside WoW with **Lua 5.1 + [busted](https://olivinelabs.com/busted/)** against a minimal WoW API stub (`test/wowstubs.lua`).
-- CI runs `busted test/` on every push via GitHub Actions.
+- Pure logic (`Util/`, `Core/`, `DB/`, `Comm/Protocol.lua`) is tested outside WoW with **Lua 5.1** and a hand-written test runner (`test/run.lua`, ~125 LOC) against a minimal WoW API stub (`test/wowstubs.lua`). See [ADR-007](docs/decisions/007-diy-test-runner.md).
+- CI runs `lua test/run.lua` on every push via GitHub Actions.
 - In-game smoke tests via `/nagara test` for UI and live comm.
 
 ### Build & Release
@@ -118,5 +123,5 @@ New-Item -ItemType Junction `
 | ------------------------------------------- | --------------------------------------------------------------- |
 | [architecture.md](docs/architecture.md)     | System architecture, layer responsibilities, data flow diagrams |
 | [data-contracts.md](docs/data-contracts.md) | Character schema, SavedVariables format, comm wire protocol     |
-| [roadmap.md](docs/roadmap.md)               | Phased implementation plan (Phase 0–10)                         |
+| [roadmap.md](docs/roadmap.md)               | Phased implementation plan (Phase 0–11)                         |
 | [decisions/](docs/decisions/)               | Architecture Decision Records (ADRs)                            |
