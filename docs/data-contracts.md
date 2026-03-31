@@ -5,9 +5,7 @@
 
 ## 1. Website → Addon Export (Paste-Import String)
 
-The website's "Export for Addon" endpoint should return a **Base64-encoded**
-serialized Lua table with the following fields. Fields not listed here
-must be **stripped** by the website before export.
+The website's "Export for Addon" endpoint should return a **Base64-encoded** serialized Lua table with the following fields. Fields not listed here must be **stripped** by the website before export.
 
 ### 1.1 Exported Character Schema
 
@@ -107,8 +105,7 @@ must be **stripped** by the website before export.
 
 ### 1.2 Fields Intentionally Excluded from Export
 
-These exist in the website's full JSON but are **not needed** by the addon
-and must be stripped before producing the export string:
+These exist in the website's full JSON but are **not needed** by the addon and must be stripped before producing the export string:
 
 | Field                       | Reason                                              |
 | --------------------------- | --------------------------------------------------- |
@@ -129,13 +126,9 @@ Base64( Serialize( characterTable ) )
 ```
 
 Where `Serialize` is the same function used by `Util/Serialize.lua` in the addon.
-The website can implement the same serialization algorithm (spec below)
-or use a compatible format that the addon's deserializer accepts.
+The website can implement the same serialization algorithm (spec below) or use a compatible format that the addon's deserializer accepts.
 
-**Alternative (simpler for website):** The website can produce a JSON string,
-the addon Base64-decodes it and runs a tiny JSON→table parser.
-However, per ADR-006, we prefer no runtime JSON parsing. So the recommended
-path is: website serializes using the Lua-compatible wire format.
+**Alternative (simpler for website):** The website can produce a JSON string, the addon Base64-decodes it and runs a tiny JSON→table parser. However, per ADR-006, we prefer no runtime JSON parsing. So the recommended path is: website serializes using the Lua-compatible wire format.
 
 > **Decision needed:** Finalize whether the website emits Lua-serialized or
 > JSON. If JSON is simpler for the web team, we can allow a small JSON
@@ -172,12 +165,41 @@ NagaraDB.cache["Playername-Realm"] = {
 }
 ```
 
-Cache entries are pruned on login if `cachedAt` is older than a configurable
-threshold (default: 90 days).
+Cache entries are pruned on login if `cachedAt` is older than a configurable threshold (default: 90 days).
+
+The DM's cache is also the data source for website sync (see ADR-008): `scripts/sync_upload.py` reads these entries and POSTs changed characters to the website API.
 
 ---
 
-## 4. Comm Wire Protocol — Message Types
+## 4. Reverse Paste-Export (Addon → Website Fallback)
+
+Any player can export their active profile via `/nagara export` or the UI "Export" button. The addon produces:
+
+```
+Base64( Serialize( activeProfile ) )
+```
+
+Same wire format as paste-import (§1.3), same schema as §1.1. The player copies the string and pastes it into the website's "Update from Addon" page.
+
+---
+
+## 5. Website Sync API (DM Script → Website)
+
+```
+POST /api/characters/:id/sync
+Headers: Authorization: Bearer <dm-token>
+Body: { character data matching §1.1 schema }
+Response:
+  200 OK              — updated
+  409 Conflict         — website version is newer (skip, warn)
+  401 Unauthorized     — bad token
+```
+
+The DM auth token is stored in a local config file (`scripts/.env` or similar), never committed to the repo (`.gitignore`d).
+
+---
+
+## 6. Comm Wire Protocol — Message Types
 
 | msgType (1 byte) | Name               | Direction   | Payload                                      |
 | ---------------- | ------------------ | ----------- | -------------------------------------------- |

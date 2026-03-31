@@ -12,9 +12,11 @@
 - [ ] Update `Nagara.toc` with file load order (stubs for empty files).
 - [ ] Create `Constants.lua` (version, color codes, enums).
 - [ ] Create `test/wowstubs.lua` — minimal WoW API stubs.
-- [ ] Set up `busted` locally; verify `busted test/` runs green with a
-      trivial smoke test.
-- [ ] GitHub Actions CI: `.github/workflows/test.yml` runs `busted` on push.
+- [ ] Implement `test/run.lua` — DIY test runner:
+      `describe`, `it`, `expect`, `beforeEach`/`afterEach`,
+      file discovery, pass/fail counting, exit code. See ADR-007.
+- [ ] Verify `lua test/run.lua` runs green with a trivial smoke test.
+- [ ] GitHub Actions CI: `.github/workflows/test.yml` runs `lua test/run.lua` on push.
 - [ ] `scripts/build.py` skeleton: reads JSON, emits Lua, bumps TOC, creates zip.
 - [ ] GitHub Actions release workflow: on `v*` tag → run tests → build → upload zip.
 
@@ -61,10 +63,9 @@
 - [ ] `Core/Search.lua` — name + tag matching. Tests: exact match, partial,
       tag filter, no results.
 - [ ] `Locale/enUS.lua`, `Locale/ruRU.lua` — initial UI string tables.
-- [ ] Verify generated Lua files load cleanly in `busted` tests.
+- [ ] Verify generated Lua files load cleanly in `lua test/run.lua`.
 
-**Deliverable:** Full static DB baked and searchable. Build script produces
-a release-ready zip.
+**Deliverable:** Full static DB baked and searchable. Build script produces a release-ready zip.
 
 ---
 

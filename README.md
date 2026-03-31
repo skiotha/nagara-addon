@@ -1,6 +1,6 @@
 # Nagara RPG
 
-A World of Warcraft addon that provides a tabletop-style RPG system layer for a group of roleplayers: character sheets, dice rolls, rules reference, abilities, spells, and more.
+A World of Warcraft addon that provides a tabletop-style RPG system layer for a group of like-minded roleplayers: character sheets, dice rolls, rules reference, abilities, spells, and more.
 
 - **Not** distributed via CurseForge / WoWInterface. Released as [GitHub Release](https://github.com/skiotha/nagara-addon/releases) zips.
 - Two modes in one addon: **Player** and **DM** (toggled via `NagaraDB.dmMode`).

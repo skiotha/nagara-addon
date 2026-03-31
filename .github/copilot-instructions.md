@@ -5,9 +5,8 @@
 
 ## About
 
-- **Nagara** is a tabletop-style RPG system helper addon for World of Warcraft.
-- It stores character sheets, rolls dice, looks up rules/abilities/spells,
-  and manages RPG-related tasks in-game for a small, closed group of roleplayers.
+- **Nagara** is a tabletop-style RPG helper addon for World of Warcraft.
+- It stores character sheets, rolls dice, looks up rules/abilities/spells, and manages RPG-related tasks in-game for a small group of like-minded roleplayers (a guild or community, probably).
 - **Not** distributed via CurseForge / WoWInterface. Released as GitHub Release zips.
 - Two logical modes in one addon: **Player** and **DM** (toggled via `NagaraDB.dmMode`).
 
@@ -20,8 +19,7 @@
 ## Zero-Dependency Policy
 
 - The addon has **no external library dependencies** (no Ace3, LibStub, LibCompress, LibMSP, etc.).
-- All utilities (serializer, base64, callbacks, message chunker, send throttle) are hand-written
-  in `Util/` and kept minimal.
+- All utilities (serializer, base64, callbacks, message chunker, send throttle) are hand-written in `Util/` and kept minimal.
 - Rationale: closed user-base, small payloads (<4 KB charsheets), full control, no version-mismatch issues.
 
 ## Code Style
@@ -81,16 +79,14 @@ Nagara/                         -- the addon folder (ships to Interface/AddOns/)
     └── PasteImport.lua
 ```
 
-- New modules: create a `.lua` file in the appropriate subfolder, list it in
-  `Nagara.toc` **after** its dependencies.
+- New modules: create a `.lua` file in the appropriate subfolder, list it in `Nagara.toc` **after** its dependencies.
 - `temp/` and `test/` are **never** shipped; they live at repo root.
 
 ## SavedVariables
 
 - The single persisted table is `NagaraDB`.
 - Always guard with defaults on `PLAYER_LOGIN` so the addon never errors on first run.
-- Key sub-tables: `NagaraDB.characters`, `NagaraDB.cache`, `NagaraDB.settings`,
-  `NagaraDB.dmMode`, `NagaraDB.dmNames`, `NagaraDB.activeProfile`.
+- Key sub-tables: `NagaraDB.characters`, `NagaraDB.cache`, `NagaraDB.settings`, `NagaraDB.dmMode`, `NagaraDB.dmNames`, `NagaraDB.activeProfile`.
 - Each stored character carries a `schemaVersion` number for forward migration.
 
 ## Communication Protocol
@@ -104,14 +100,14 @@ Nagara/                         -- the addon folder (ships to Interface/AddOns/)
 ## Character Data Model
 
 - Characters are imported via **paste-import** (Base64-encoded string from the website).
-- N Nagara profiles can map to 1 WoW character. Players swap via `/nagara profile <name>`.
+- Nagara profiles can map to WoW character N:1. Players swap via `/nagara profile <name>`.
 - One "active profile" is transmitted when another player requests inspection.
 - DM authorization: receiver checks sender against `DM_NAMES` list in `Constants.lua`.
 
 ## Static Database
 
 - ~310 entries total: 70 abilities, 50 spells, 30 rituals, 50 talents, 80 items, ~25 rule texts.
-- Stored as Lua table literals in `DB/`, **generated at build time** from source JSON.
+- Stored as Lua table literals in `DB/`, either **generated at build time** from source JSON.
 - Changes only on new addon releases — never at runtime.
 - Short enough for linear search (no indexing infrastructure needed).
 
@@ -133,15 +129,19 @@ Nagara/                         -- the addon folder (ships to Interface/AddOns/)
 ## Testing
 
 - **Testing-first policy.** Write tests before implementation where possible.
-- Pure logic (`Util/`, `Core/`, `DB/`, `Comm/Protocol.lua`) is tested outside WoW
-  with Lua 5.1 + `busted` against a minimal WoW API stub (`test/wowstubs.lua`).
-- CI runs `busted test/` on every push via GitHub Actions.
+- **DIY test runner** (`test/run.lua`, ~125 LOC) — no external test framework (no busted, no luarocks).
+  Provides `describe` / `it` / `expect` interface. See ADR-007.
+- Pure logic (`Util/`, `Core/`, `DB/`, `Comm/Protocol.lua`) is tested outside WoW with Lua 5.1 + `test/run.lua` against a minimal WoW API stub (`test/wowstubs.lua`).
+- CI runs `lua test/run.lua` on every push via GitHub Actions.
 - In-game smoke tests via `/nagara test` for UI and live comm.
 - Manual integration testing with a second character / friend.
 
 ## Build & Release
 
 - `scripts/build.py`: converts JSON → Lua DB files, bumps TOC version, zips `Nagara/`.
+- `scripts/sync_upload.py`: DM-only post-session tool — reads `NagaraDB.lua`,
+  syncs changed character data to the website API. See ADR-008.
+- Scripts live at repo root in `scripts/`, **never** shipped in the addon zip.
 - GitHub Actions on tag push (`v*`) runs tests then creates a GitHub Release with the zip.
 - Users download the zip and extract into `Interface/AddOns/`.
 

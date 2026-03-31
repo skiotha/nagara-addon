@@ -7,8 +7,7 @@ applyTo: "Nagara/**/*.lua"
 ## Language Constraints
 
 - Target **Lua 5.1** only. The WoW client does not support 5.2+.
-- Forbidden: `goto`, bitwise operators (`&`, `|`, `~`, `<<`, `>>`),
-  `__gc` metamethod on tables, `\z` escape in strings, `load()` with mode arg.
+- Forbidden: `goto`, bitwise operators (`&`, `|`, `~`, `<<`, `>>`), `__gc` metamethod on tables, `\z` escape in strings, `load()` with mode arg.
 - Use `loadstring()` not `load()` when dynamic code eval is required.
 - `unpack` lives in global scope (not `table.unpack`).
 
@@ -50,8 +49,7 @@ ns.DoThing = doThing          -- PascalCase for namespace API
 ## WoW API Safety
 
 - Never call secure-protected functions from insecure frames.
-- Always check `InCombatLockdown()` before `Show()` / `Hide()` on frames
-  that could be affected by taint.
+- Always check `InCombatLockdown()` before `Show()` / `Hide()` on frames that could be affected by taint.
 - Register events on a dedicated hidden frame, not on UI frames.
 
 ## Performance Guardrails

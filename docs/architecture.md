@@ -4,9 +4,7 @@
 
 ## 1. Overview
 
-Nagara is a World of Warcraft addon that provides a tabletop RPG system layer
-on top of the game client. It is used by a small, closed group of roleplayers
-and is distributed exclusively via GitHub Releases.
+Nagara is a World of Warcraft addon that provides a tabletop RPG system layer on top of the game client. It is used by a small, closed group of roleplayers and is distributed exclusively via GitHub Releases.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -49,13 +47,16 @@ and is distributed exclusively via GitHub Releases.
 │  WoW APIs: C_ChatInfo · C_Timer · CreateFrame · ...          │
 └──────────────────────────────────────────────────────────────┘
 
-         ▲ paste-import string
+         ▲ paste-import string         paste-export string ▼
+         │                              (player fallback)  │
+┌────────┴─────────────────────────────────────────────────┴──┐
+│                      Nagara Website                         │
+│                    (character builder)                      │
+└────────▲────────────────────────────────────────────────────┘
          │
-┌────────┴──────────┐
-│  Nagara Website   │
-│  (character       │
-│   builder)        │
-└───────────────────┘
+         │  sync_upload.py  (DM only, offline)
+         │  reads WTF/.../NagaraDB.lua
+         │  POSTs changed profiles
 ```
 
 ## 2. Layer Responsibilities
@@ -86,11 +87,9 @@ No UI code. No direct frame manipulation.
 
 ### 2.3 DB/ — Static Data
 
-Lua table literals generated at **build time** from canonical JSON source files.
-Never mutated at runtime.
+Lua table literals generated at **build time** from canonical JSON source files. Never mutated at runtime.
 
-- One file per category × locale (e.g., `Abilities_ru.lua`, `Abilities_en.lua`)
-  or a single file with both locales keyed by language code.
+- One file per category × locale (e.g., `Abilities_ru.lua`, `Abilities_en.lua`) or a single file with both locales keyed by language code.
 - `Loader.lua` selects the active locale at startup via `GetLocale()`.
 
 ### 2.4 Locale/
@@ -191,7 +190,36 @@ DM                                    Player
  │  ◄── DM_EDIT_ACK ─────────────────│
 ```
 
-### 3.4 Dice Roll
+### 3.4 Addon → Website (ADR-008)
+
+```
+  ┌── Primary path (DM only, post-session) ──────────────────────┐
+  │                                                              │
+  │  WTF/.../NagaraDB.lua                                        │
+  │       │                                                      │
+  │       ▼                                                      │
+  │  scripts/sync_upload.py                                      │
+  │       │  parse NagaraDB.cache                                │
+  │       │  compare lastModified                                │
+  │       │  POST changed profiles                               │
+  │       ▼                                                      │
+  │  Website API                                                 │
+  └──────────────────────────────────────────────────────────────┘
+
+  ┌── Fallback path (any player, in-game) ───────────────────────┐
+  │                                                              │
+  │  NagaraDB.characters[guid]                                   │
+  │       │                                                      │
+  │       ▼                                                      │
+  │  Serialize → Base64 encode → display in EditBox              │
+  │       │                                                      │
+  │       │  user copies string                                  │
+  │       ▼                                                      │
+  │  Paste into website import form                              │
+  └──────────────────────────────────────────────────────────────┘
+```
+
+### 3.5 Dice Roll
 
 ```
 User clicks roll button
@@ -240,7 +268,7 @@ NagaraDB = {
 }
 ```
 
-## 5. Build Pipeline
+## 5. Build & Scripts Pipeline
 
 ```
 temp/*.json  ──►  scripts/build.py  ──►  Nagara/DB/*.lua   (baked Lua tables)
@@ -248,22 +276,46 @@ temp/*.json  ──►  scripts/build.py  ──►  Nagara/DB/*.lua   (baked Lu
                        ├──►  bump Nagara.toc version
                        └──►  zip Nagara/ → dist/Nagara-vX.Y.Z.zip
 
+Post-session sync (DM only, see ADR-008):
+  WTF/.../NagaraDB.lua  ──►  scripts/sync_upload.py  ──►  Website API
+                                    │
+                                    └──►  compares lastModified
+                                    └──►  POSTs changed characters
+
 GitHub Actions (on tag push v*):
   1. checkout
-  2. lua 5.1 + busted → run test/
+  2. lua 5.1 → lua test/run.lua   (DIY runner)
   3. python scripts/build.py
   4. upload zip as GitHub Release asset
 ```
 
 ## 6. Testing Strategy
 
-| Layer                                                      | Method            | Runner        |
-| ---------------------------------------------------------- | ----------------- | ------------- |
-| Util/, Core/, DB/Loader, Comm/Protocol, Import/PasteImport | Unit tests        | `busted` (CI) |
-| UI smoke, combat-hide, link clicks                         | `/nagara test`    | In-game       |
-| Comm round-trip, sync                                      | Dual-box / friend | Manual        |
+| Layer                                                      | Method            | Runner                       |
+| ---------------------------------------------------------- | ----------------- | ---------------------------- |
+| Util/, Core/, DB/Loader, Comm/Protocol, Import/PasteImport | Unit tests        | `lua test/run.lua` (DIY, CI) |
+| UI smoke, combat-hide, link clicks                         | `/nagara test`    | In-game                      |
+| Comm round-trip, sync                                      | Dual-box / friend | Manual                       |
 
+Test runner is hand-written (~125 LOC). See ADR-007.
 Test files mirror source: `test/test_serialize.lua` tests `Util/Serialize.lua`.
+
+Project structure for tests:
+
+```
+test/                           -- NOT shipped; lives at repo root
+├── run.lua                     -- DIY test runner
+├── wowstubs.lua                -- Minimal WoW API stubs
+├── test_serialize.lua
+├── test_base64.lua
+├── test_charsheet.lua
+├── test_dice.lua
+├── test_effects.lua
+├── test_search.lua
+├── test_chunker.lua
+└── test_protocol.lua
+```
+
 A minimal `test/wowstubs.lua` stubs `CreateFrame`, `C_Timer`, `GetTime`,
 `strtrim`, `GetLocale`, etc.
 

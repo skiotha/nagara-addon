@@ -6,9 +6,13 @@ applyTo: "test/**"
 
 ## Framework
 
-- Tests run outside WoW with **Lua 5.1 + busted**.
+- Tests run outside WoW with **Lua 5.1** and a **hand-written test runner** (`test/run.lua`).
+- No external test framework (no busted, no luarocks). See ADR-007.
+- The runner provides `describe`, `it`, `expect`, `beforeEach`, `afterEach`.
 - WoW API stubs live in `test/wowstubs.lua` — loaded before any addon file.
 - Tests should never require the actual WoW client or network.
+- Run all tests: `lua test/run.lua`
+- Exit code 0 = all passed, 1 = failures.
 
 ## File Naming
 
@@ -18,13 +22,15 @@ applyTo: "test/**"
 ## Structure
 
 ```lua
-require("test.wowstubs")
--- load the module under test
+-- test/test_serialize.lua
+-- (wowstubs and runner globals are loaded automatically by run.lua)
 
-describe("ModuleName", function()
-    describe("FunctionName", function()
-        it("does specific thing", function()
-            -- arrange / act / assert
+describe("Serialize", function()
+    describe("roundTrip", function()
+        it("handles a flat table", function()
+            local input = { a = 1, b = "hello" }
+            local str = ns.Serialize(input)
+            expect(ns.Deserialize(str)).toEqual(input)
         end)
     end)
 end)
@@ -43,8 +49,21 @@ end)
 - Frame rendering, click handlers, visual layout → in-game `/nagara test`.
 - Actual `SendAddonMessage` delivery → manual integration test.
 
+## Assertions
+
+The `expect(value)` function returns an object with these matchers:
+
+- `expect(a).toEqual(b)` — deep equality for tables, strict `==` for scalars.
+- `expect(a).toBeNil()` — value is nil.
+- `expect(a).toBeTruthy()` / `expect(a).toBeFalsy()`
+- `expect(fn).toError()` — function throws when called.
+- `expect(a).toContain(b)` — string contains substring, or table contains value.
+
+Add new matchers to `test/run.lua` as needed — keep them minimal.
+
 ## Principles
 
 - Write tests **before** implementation where practical (testing-first).
 - Each test should be independent — no shared mutable state between `it()` blocks.
 - Prefer explicit assertions over "no error thrown."
+- Keep `test/run.lua` lean (~125 LOC). Do not over-engineer the runner.
