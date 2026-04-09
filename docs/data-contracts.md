@@ -214,6 +214,10 @@ The DM auth token is stored in a local config file (`scripts/.env` or similar), 
 All payloads are serialized via `Util/Serialize.lua` and chunked if >251 bytes.
 Envelope format: `[protoVersion:1B][msgType:1B][seqNum:1B][totalChunks:1B][payload]`
 
+> **Note:** DM message types (`0x20`–`0x22`) are defined in the player addon's
+> `Comm/Protocol.lua` so the player can handle incoming DM commands.
+> The **sending** logic for these messages lives in the separate **NagaraDM** addon.
+
 ---
 
 ## 5. Static DB Entry Schemas

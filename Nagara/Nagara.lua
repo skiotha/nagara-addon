@@ -1,6 +1,9 @@
 -- Namespace shared across all addon files loaded by the .toc
 local addonName, ns = ...
 
+-- Expose namespace for the NagaraDM addon (loaded after Nagara via ## Dependencies)
+NagaraNS = ns
+
 -- SavedVariables table (persisted between sessions)
 NagaraDB = NagaraDB or {}
 

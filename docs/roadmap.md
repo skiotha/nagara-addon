@@ -175,18 +175,10 @@
 
 ---
 
-## Phase 9 — DM Mode
+## Phase 9 — *(Removed)*
 
-**Goal:** DM-specific features.
-
-- [ ] `DM/DMPanel.lua` — edit fields on other characters' sheets.
-- [ ] `DM/DMComm.lua` — `DM_EDIT` message type, receiver-side
-      allow-list validation, `DM_EDIT_ACK` response.
-- [ ] DM roll requests: DM sends `DM_ROLL_REQUEST` → player sees
-      prompt → rolls → result auto-sent back to DM.
-- [ ] `/nagara dm` toggles DM mode (guarded by `DM_NAMES` check).
-
-**Deliverable:** DM can edit others' sheets and request rolls.
+> DM features (DMPanel, DMComm, `/nagara dm`) are tracked in the private
+> **NagaraDM** repository. See ADR-009.
 
 ---
 
@@ -211,5 +203,5 @@
 - Discord bot → SavedVariables auto-import (ADR-003 Approach A).
 - Character creation directly in-addon.
 - Roll macros / saved roll presets.
-- Visual combat tracker (DM tool).
+- Visual combat tracker (DM tool — NagaraDM repo).
 - Profile versioning and diff-based sync (send only changed fields).

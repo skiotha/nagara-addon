@@ -8,7 +8,6 @@ Part of the [Nagara](https://github.com/skiotha) project family alongside:
 - **[malizia](https://github.com/skiotha/malizia)** — Discord bot for dice rolling and lookups
 
 - **Not** distributed via CurseForge / WoWInterface. Released as [GitHub Release](https://github.com/skiotha/nagara-addon/releases) zips.
-- Two modes in one addon: **Player** and **DM** (toggled via `NagaraDB.dmMode`).
 - **Zero external dependencies** — no Ace3, LibStub, or any third-party library.
 - Characters are imported via **paste-import** (Base64 string from the companion website).
 - Primary locale: **ruRU**. Secondary: **enUS**.
@@ -49,9 +48,6 @@ Nagara/                         -- addon folder (ships to Interface/AddOns/)
 │   ├── ImportDialog.lua
 │   ├── Widgets.lua
 │   └── LinkHandler.lua
-├── DM/
-│   ├── DMPanel.lua
-│   └── DMComm.lua
 └── Import/
     └── PasteImport.lua
 docs/                           -- design docs (not shipped)
@@ -82,7 +78,6 @@ scripts/                        -- build & release tooling (not shipped)
 - `/nagara import` — open the paste-import dialog.
 - `/nagara profile <name>` — switch active character profile.
 - `/nagara compact` — toggle compact (dice-only) mode.
-- `/nagara dm` — toggle DM mode (authorized users only).
 
 ## Development
 

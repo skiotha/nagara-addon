@@ -26,21 +26,21 @@ Nagara is a World of Warcraft addon that provides a tabletop RPG system layer on
 │  │  │              Namespace (ns)                 │        │ │
 │  │  └──────┬──────────────┬──────────────┬────────┘        │ │
 │  │         │              │              │                 │ │
-│  │  ┌──────┴───┐   ┌──────┴───┐    ┌─────┴─────┐           │ │
-│  │  │  Comm/   │   │   UI/    │    │    DM/    │           │ │
-│  │  │ Protocol │   │ MainFrame│    │ DMPanel   │           │ │
-│  │  │ Sync     │   │ Charsheet│    │ DMComm    │           │ │
-│  │  │          │   │ Compact  │    │           │           │ │
-│  │  │          │   │ Dice     │    │           │           │ │
-│  │  │          │   │ Browser  │    │           │           │ │
-│  │  │          │   │ Import   │    │           │           │ │
-│  │  │          │   │ Links    │    │           │           │ │
-│  │  └──────────┘   └──────────┘    └───────────┘           │ │
+│  │  ┌──────┴───┐   ┌──────┴───┐                    │ │
+│  │  │  Comm/   │   │   UI/    │                    │ │
+│  │  │ Protocol │   │ MainFrame│                    │ │
+│  │  │ Sync     │   │ Charsheet│                    │ │
+│  │  │          │   │ Compact  │                    │ │
+│  │  │          │   │ Dice     │                    │ │
+│  │  │          │   │ Browser  │                    │ │
+│  │  │          │   │ Import   │                    │ │
+│  │  │          │   │ Links    │                    │ │
+│  │  └──────────┘   └──────────┘                    │ │
 │  │                                                         │ │
 │  │  ┌──────────────────────────────────────┐               │ │
 │  │  │  NagaraDB   (SavedVariables)         │               │ │
 │  │  │  .characters  .cache  .settings      │               │ │
-│  │  │  .dmMode  .dmNames  .activeProfile   │               │ │
+│  │  │  .activeProfile                       │               │ │
 │  │  └──────────────────────────────────────┘               │ │
 │  └─────────────────────────────────────────────────────────┘ │
 │                                                              │
@@ -124,21 +124,15 @@ On `PLAYER_REGEN_ENABLED` → allow re-opening.
 | `Widgets.lua`        | Reusable widget factories (buttons, scroll lists, tabs)          |
 | `LinkHandler.lua`    | `\|Hnagara:…\|h` creation + `SetItemRef` hook for click handling |
 
-### 2.7 DM/
-
-Loaded for everyone but only **active** when `NagaraDB.dmMode == true`.
-DM status verified on the receiving end via a name allow-list.
-
-| Module        | Purpose                                                  |
-| ------------- | -------------------------------------------------------- |
-| `DMPanel.lua` | Edit other characters' data, request dice rolls          |
-| `DMComm.lua`  | DM-specific message types (edit commands, roll requests) |
-
-### 2.8 Import/
+### 2.7 Import/
 
 | Module            | Purpose                                                        |
 | ----------------- | -------------------------------------------------------------- |
 | `PasteImport.lua` | Decode Base64 → deserialize → validate schema → prompt → store |
+
+> **Note:** DM features (DMPanel, DMComm) live in the separate **NagaraDM** addon,
+> which depends on Nagara via `## Dependencies: Nagara` in its TOC.
+> See ADR-009 for details.
 
 ## 3. Data Flow Diagrams
 
@@ -178,12 +172,14 @@ Player A                              Player B
  │  CharSheetPanel(readOnly)            │
 ```
 
-### 3.3 DM Edit
+### 3.3 DM Edit (Player-Side Handling)
+
+DM edit and roll-request messages are sent by the **NagaraDM** addon.
+The player addon only handles the **receiving** side:
 
 ```
-DM                                    Player
- │  DMPanel: edit field                │
- │  ──► DM_EDIT { target, field, val }►│
+NagaraDM (DM's client)                Player
+ │  DM_EDIT { target, field, val } ───►│
  │                                     │ check DM_NAMES allow-list
  │                                     │ apply edit
  │                                     │ ack
@@ -248,8 +244,6 @@ NagaraDB = {
         compactMode = false,
         minimap = { show = true },
     },
-    dmMode = false,
-    dmNames = { "Charactername-Realm" },
     activeProfile = "charGuid",     -- GUID of the currently active profile
     characters = {
         ["<guid>"] = {              -- one entry per imported profile

@@ -1,6 +1,6 @@
 # ADR-004: Single Addon with DM Mode Flag
 
-**Status:** Accepted  
+**Status:** Superseded by [ADR-009](009-two-addon-split.md)  
 **Date:** 2026-03-29  
 **Deciders:** Project owner + Copilot design session
 

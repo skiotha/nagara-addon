@@ -8,7 +8,7 @@
 - **Nagara** is a tabletop-style RPG helper addon for World of Warcraft.
 - It stores character sheets, rolls dice, looks up rules/abilities/spells, and manages RPG-related tasks in-game for a small group of like-minded roleplayers (a guild or community, probably).
 - **Not** distributed via CurseForge / WoWInterface. Released as GitHub Release zips.
-- Two logical modes in one addon: **Player** and **DM** (toggled via `NagaraDB.dmMode`).
+- DM tools live in a separate private addon (**NagaraDM**) that depends on Nagara via `## Dependencies: Nagara`.
 
 ## Language & Runtime
 
@@ -72,9 +72,6 @@ Nagara/                         -- the addon folder (ships to Interface/AddOns/)
 │   ├── ImportDialog.lua
 │   ├── Widgets.lua
 │   └── LinkHandler.lua
-├── DM/
-│   ├── DMPanel.lua
-│   └── DMComm.lua
 └── Import/
     └── PasteImport.lua
 ```
@@ -86,7 +83,7 @@ Nagara/                         -- the addon folder (ships to Interface/AddOns/)
 
 - The single persisted table is `NagaraDB`.
 - Always guard with defaults on `PLAYER_LOGIN` so the addon never errors on first run.
-- Key sub-tables: `NagaraDB.characters`, `NagaraDB.cache`, `NagaraDB.settings`, `NagaraDB.dmMode`, `NagaraDB.dmNames`, `NagaraDB.activeProfile`.
+- Key sub-tables: `NagaraDB.characters`, `NagaraDB.cache`, `NagaraDB.settings`, `NagaraDB.activeProfile`.
 - Each stored character carries a `schemaVersion` number for forward migration.
 
 ## Communication Protocol
@@ -102,7 +99,7 @@ Nagara/                         -- the addon folder (ships to Interface/AddOns/)
 - Characters are imported via **paste-import** (Base64-encoded string from the website).
 - Nagara profiles can map to WoW character N:1. Players swap via `/nagara profile <name>`.
 - One "active profile" is transmitted when another player requests inspection.
-- DM authorization: receiver checks sender against `DM_NAMES` list in `Constants.lua`.
+- DM message handling: receiver checks sender against `DM_NAMES` allow-list in `Constants.lua` before applying DM edits or roll requests. The DM-side sending logic lives in the separate NagaraDM addon.
 
 ## Static Database
 
@@ -145,9 +142,14 @@ Nagara/                         -- the addon folder (ships to Interface/AddOns/)
 - GitHub Actions on tag push (`v*`) runs tests then creates a GitHub Release with the zip.
 - Users download the zip and extract into `Interface/AddOns/`.
 
+## Namespace Bridge
+
+- `Nagara.lua` exposes `NagaraNS = ns` as a global for the DM addon to consume.
+- This is the **only** intentional global besides `NagaraDB` (SavedVariables) and `SlashCmdList`.
+
 ## Things to Avoid
 
-- **No global pollution** — every top-level `local` stays local.
+- **No global pollution** — every top-level `local` stays local (exception: `NagaraNS` bridge, see above).
 - **No `pairs`/`ipairs` in per-frame code** — pre-cache instead.
 - **No secure-function calls from insecure code** during combat.
 - **No runtime JSON parsing** — all data converted at build time.
